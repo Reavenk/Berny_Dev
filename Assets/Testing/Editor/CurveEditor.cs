@@ -106,12 +106,18 @@ public class CurveEditor : Editor
 
         foreach(string f in files)
         {
+            GUILayout.BeginHorizontal();
             if (GUILayout.Button("LOAD " + f) == true)
             {
                 t.curveDocument.Clear();
-                SVGSerializer.Load("TestSamples/" + f + ".svg", t.curveDocument);
+                SVGSerializer.Load("TestSamples/" + f + ".svg", t.curveDocument, true);
                 t.curveDocument.FlushDirty();
             }
+            if(GUILayout.Button("...", GUILayout.Width(30.0f)) == true)
+            {
+                System.Diagnostics.Process.Start("TestSamples\\" + f + ".svg");
+            }
+            GUILayout.EndHorizontal();
         }
 
         GUILayout.Space(20.0f);
