@@ -1,0 +1,1 @@
+These are test samples that can be loaded by the test scene. Do not move or rename without making the reflective changes in CurveEditor.cs.
