@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: 39a25c8b2d4ed5b4c82982cacb0d5652
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Battalion Commander
+  fontNames:
+  - Battalion Commander
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 186e6f335cea3ad41bb85c30ce82504a, type: 3}
+  - {fileID: 12800000, guid: 43146829200554e4bbe6e2e7e5c5dd48, type: 3}
+  - {fileID: 12800000, guid: fd34715a3ac8d04429c57320f8c58d33, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
