@@ -52,15 +52,19 @@ public class BernyTest : MonoBehaviour
         FilledAndOutlined
     }
 
-    Dictionary<BShape, FillEntry> fillEntries = new Dictionary<BShape, FillEntry>();
+    Dictionary<BShape, FillEntry> fillEntries = 
+        new Dictionary<BShape, FillEntry>();
 
     public Shader standardShader;
+
+    public bool drawFontCharPrevs = true;
 
     // Start is called before the first frame update
     void Start()
     {
         PxPre.Berny.TTF.Loader loader = new PxPre.Berny.TTF.Loader();
-        this.typeface = loader.ReadTTF("Assets\\Testing\\Nerko\\NerkoOne-Regular.ttf");
+        //this.typeface = loader.ReadTTF("Assets\\Testing\\Nerko\\NerkoOne-Regular.ttf");
+        this.typeface = loader.ReadTTF("Assets\\Testing\\BattalionCommander\\Battalion Commander.otf");
 
         this.curveDocument = new Document();
 
@@ -102,7 +106,7 @@ public class BernyTest : MonoBehaviour
 
             FillSession session = new FillSession();
             session.ExtractFillLoops(bs);
-            session.GetTriangles(triangles, vectorRepo, true, true);
+            session.GetTriangles(triangles, vectorRepo, true, FillIsland.WindingRequirement.Clockwise, true);
 
             fe.mesh.SetVertices(vectorRepo.GetVector3Array());
             fe.mesh.SetIndices(triangles, MeshTopology.Triangles, 0);
@@ -122,7 +126,7 @@ public class BernyTest : MonoBehaviour
             foreach(FillIsland fi in session.islands)
                 fi.MakeOutlineBridged(width);
             
-            session.GetTriangles(triangles, vectorRepo, true, true);
+            session.GetTriangles(triangles, vectorRepo, true, FillIsland.WindingRequirement.Clockwise, true);
 
             fe.mesh.SetVertices(vectorRepo.GetVector3Array());
             fe.mesh.SetIndices(triangles, MeshTopology.Triangles, 0);
@@ -142,12 +146,12 @@ public class BernyTest : MonoBehaviour
             session.ExtractFillLoops(bs);
             FillSession outSession = session.Clone();
 
-            session.GetTriangles(triangles, vectorRepo, true, true);
+            session.GetTriangles(triangles, vectorRepo, true, FillIsland.WindingRequirement.Clockwise, true);
 
             foreach (FillIsland fi in outSession.islands)
                 fi.MakeOutlineBridged(width);
 
-            outSession.GetTriangles(strokeTris, vectorRepo, true, true);
+            outSession.GetTriangles(strokeTris, vectorRepo, true, FillIsland.WindingRequirement.Clockwise, true);
 
             fe.mesh.subMeshCount = 2;
             fe.mesh.SetVertices(vectorRepo.GetVector3Array());
@@ -185,6 +189,7 @@ public class BernyTest : MonoBehaviour
     }
 
     GameObject cursor = null;
+
     void Update()
     {
         if(cursor == null)
@@ -220,7 +225,7 @@ public class BernyTest : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if(this.typeface == null)
+        if(this.typeface == null || this.drawFontCharPrevs == false)
             return;
 
         Gizmos.color = Color.magenta;

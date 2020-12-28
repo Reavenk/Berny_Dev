@@ -69,10 +69,12 @@ public class CurveEditor : Editor
         this.strokeWidth = EditorGUILayout.Slider("Stroke Width", this.strokeWidth, 0.001f, 1.0f);
 
         GUILayout.BeginHorizontal();
+            GUI.color = Color.green;
             if(GUILayout.Button("Select All") == true)
             { 
                 this.selectedNodes = new HashSet<BNode>( t.curveDocument.EnumerateNodes() );
             }
+            GUI.color = Color.white;
             if(GUILayout.Button("Deselect All") == true)
             { 
                 this.selectedNodes.Clear();
@@ -172,6 +174,22 @@ public class CurveEditor : Editor
 
         if(this.selectedNodes.Count > 0)
         { 
+            if(GUILayout.Button("Reverse Windings") == true)
+            { 
+                HashSet<BLoop> loops = new HashSet<BLoop>();
+                foreach(BNode bn in this.selectedNodes)
+                    loops.Add(bn.parent);
+
+                foreach(BLoop loop in loops)
+                { 
+                    if(loop == null)
+                        continue;
+
+                    loop.Reverse();
+                }
+            }
+
+            GUI.color = Color.red;
             GUILayout.BeginHorizontal();
                 if(GUILayout.Button("Delete Selected") == true)
                 { 
@@ -194,6 +212,7 @@ public class CurveEditor : Editor
                         selNode.Detach();
                 }
             GUILayout.EndHorizontal();
+            GUI.color = Color.white;
 
             if (GUILayout.Button("Connect") == true)
             {
@@ -512,11 +531,8 @@ public class CurveEditor : Editor
                             segmentsA = tmp;
                         }
 
-                        if(BNode.CalculateWinding(segmentsB) > 0.0f)
-                            segmentsB[0].InvertChainOrder();
-
-                        if (BNode.CalculateWinding(segmentsA) < 0.0f)
-                            segmentsA[0].InvertChainOrder();
+                        if(BNode.CalculateWinding(segmentsB) > 0.0f == BNode.CalculateWinding(segmentsA) > 0.0f)
+                            segmentsB[0].ReverseChainOrder();
 
                         BNode inR;
                         float inf;
@@ -663,10 +679,14 @@ public class CurveEditor : Editor
             }
 
             BSample bit = bn.sample;
-            while(bit.parent == bn && bit != null && bit.next != null)
+            BSample bitFirst = bit;
+            while(bit != null && bit.parent == bn && bit.next != null)
             {
                 Handles.DrawLine(bit.pos, bit.next.pos);
                 bit = bit.next;
+
+                if(bit == bitFirst)
+                    break;
             }
         }
     
