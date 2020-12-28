@@ -32,10 +32,19 @@ using PxPre.Berny;
 /// </summary>
 public class BernyTest : MonoBehaviour
 {
+    /// <summary>
+    /// The document workspace for testing.
+    /// </summary>
     public Document curveDocument;
 
+    /// <summary>
+    /// The font to test.
+    /// </summary>
     public PxPre.Berny.Font.Typeface typeface;
 
+    /// <summary>
+    /// Unity geometry information for a filled path.
+    /// </summary>
     public struct FillEntry
     { 
         public BShape shape;
@@ -45,18 +54,41 @@ public class BernyTest : MonoBehaviour
         public Mesh mesh;
     }
 
+    /// <summary>
+    /// The different options for filling a path
+    /// </summary>
     public enum FillType
     { 
+        /// <summary>
+        /// Fill the inside.
+        /// </summary>
         Filled,
+
+        /// <summary>
+        /// Turn the path into an outline and fill it.
+        /// </summary>
         Outlined,
+
+        /// <summary>
+        /// Fill the inside and surround it with a filled outline.
+        /// </summary>
         FilledAndOutlined
     }
 
+    /// <summary>
+    /// The outline information for shapes.
+    /// </summary>
     Dictionary<BShape, FillEntry> fillEntries = 
         new Dictionary<BShape, FillEntry>();
 
+    /// <summary>
+    /// The Shader to used for Materials, for filled content.
+    /// </summary>
     public Shader standardShader;
 
+    /// <summary>
+    /// Toggles whether the preview for loaded glyphs is shown or hidden.
+    /// </summary>
     public bool drawFontCharPrevs = true;
 
     // Start is called before the first frame update
@@ -79,6 +111,12 @@ public class BernyTest : MonoBehaviour
         this.curveDocument.FlushDirty();
     }
 
+    /// <summary>
+    /// Create fill geometry for a shape, or update the geometry if it already exists.
+    /// </summary>
+    /// <param name="bs">The shape to fill.</param>
+    /// <param name="ft">The fill type.</param>
+    /// <param name="width">The outline width of the fill. Only relevant for ft values that have an outline.</param>
     public void UpdateForFill(BShape bs, FillType ft, float width)
     {
         FillEntry fe;
@@ -167,6 +205,11 @@ public class BernyTest : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Refresh the fill for all known filled shapes.
+    /// </summary>
+    /// <param name="ft">How to fill them.</param>
+    /// <param name="stroke">Stroke width. Only relevant for ft options that have an outline.</param>
     public void UpdateFillsForAll(FillType ft, float stroke)
     { 
         foreach(Layer layer in this.curveDocument.Layers())
@@ -178,6 +221,9 @@ public class BernyTest : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clear all filled data, including destroying their mesh geometry.
+    /// </summary>
     public void ClearFills()
     {
         foreach(KeyValuePair<BShape, FillEntry > kvp in this.fillEntries)
@@ -188,6 +234,9 @@ public class BernyTest : MonoBehaviour
         this.fillEntries.Clear();
     }
 
+    /// <summary>
+    /// The cursor for inputting positions for certain tests.
+    /// </summary>
     GameObject cursor = null;
 
     void Update()
