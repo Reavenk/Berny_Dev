@@ -151,6 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   standardShader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  drawFontCharPrevs: 0
 --- !u!4 &562318029
 Transform:
   m_ObjectHideFlags: 0

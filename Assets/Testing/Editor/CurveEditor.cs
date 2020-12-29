@@ -36,6 +36,8 @@ public class CurveEditor : Editor
     public float strokeWidth = 0.1f;
 
     public static string textToCreate = "Text To Create!";
+    public static bool bridgeFonts = true;
+
     public static bool drawKnots = true;
 
     /// <summary>
@@ -518,66 +520,25 @@ public class CurveEditor : Editor
 
                     List<BNode> islands = blTarg.GetIslands( IslandTypeRequest.Closed);
                     if(islands.Count >= 2)
-                    { 
+                    {
                         List<BNode> segmentsA = new List<BNode>(islands[0].Travel());
                         List<BNode> segmentsB = new List<BNode>(islands[1].Travel());
 
-                        Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(segmentsA, segmentsB);
-                        // We want segmentsA to be the larger outside
-                        if(bm == Boolean.BoundingMode.RightSurroundsLeft)
-                        {
-                            List<BNode> tmp = segmentsB;
-                            segmentsB = segmentsA;
-                            segmentsA = tmp;
-                        }
+                        BNode innerBridgeSeg, outerBridgeSeg;
+                        float innerBridgeT, outerBridgeT;
 
-                        if(BNode.CalculateWinding(segmentsB) > 0.0f == BNode.CalculateWinding(segmentsA) > 0.0f)
-                            segmentsB[0].ReverseChainOrder();
+                        BNode.FindBridge(
+                            segmentsA, 
+                            segmentsB, 
+                            out innerBridgeSeg,
+                            out outerBridgeSeg,
+                            out innerBridgeT,
+                            out outerBridgeT);
 
-                        BNode inR;
-                        float inf;
-                        Vector2 inmaxR;
-                        BNode.GetMaxPoint(segmentsB, out inR, out inmaxR, out inf, 0);
-
-                        Vector2 rayCont = inmaxR + new Vector2(1.0f, 0.0f);
-
-                        List<float> interCurve = new List<float>();
-                        List<float> interLine = new List<float>();
-                        List<BNode> colNodes = new List<BNode>();
-                        foreach(BNode bn in segmentsA)
-                        { 
-                            bn.ProjectSegment(
-                                inmaxR, 
-                                rayCont, 
-                                interCurve, 
-                                interLine, 
-                                colNodes);
-                        }
-
-                        BNode closest = null;
-                        float curveT = 0.0f;    
-                        float rayDst = 0.0f; // Since the offset for the ray control is positive 1, this will be unit dist
-
-                        for(int i = 0; i < interCurve.Count; ++i)
-                        { 
-                            if(interCurve[i] < 0.0f || interCurve[i] > 1.0f)
-                                continue;
-
-                            if(interLine[i] <= 0.0f)
-                                continue;
-
-                            if(closest == null || interLine[i] < rayDst)
-                            {
-                                closest = colNodes[i];
-                                rayDst = interLine[i];
-                                curveT = interCurve[i];
-                            }
-                        }
-
-                        if(closest != null)
+                        if (outerBridgeSeg != null)
                         { 
                             // We have what we need for a connection.
-                            BNode.MakeBridge(inR, inf, closest, curveT);
+                            BNode.MakeBridge(innerBridgeSeg, innerBridgeT, outerBridgeSeg, outerBridgeT);
                         }
                     }
                 }
@@ -590,14 +551,24 @@ public class CurveEditor : Editor
                     GUILayout.ExpandWidth(true),
                     GUILayout.Height(100.0f));
 
+        bridgeFonts = 
+            GUILayout.Toggle(bridgeFonts, "Bridge Font");
+
         if (GUILayout.Button("Create Text") == true)
         {
-            PxPre.Berny.Text.GenerateString(
-                t.curveDocument.GetFirstLayer(), 
-                Vector2.zero, 
-                t.typeface, 
-                1.0f,
-                textToCreate);
+            List<BShape> charShapes = 
+                PxPre.Berny.Text.GenerateString(
+                    t.curveDocument.GetFirstLayer(), 
+                    Vector2.zero, 
+                    t.typeface, 
+                    1.0f,
+                    textToCreate);
+
+            if(bridgeFonts == true)
+            {
+                foreach(BShape bs in charShapes)
+                    Text.BridgeGlyph(bs);
+            }
         }
 
         if (t.curveDocument.IsDirty() == true)
@@ -640,7 +611,7 @@ public class CurveEditor : Editor
                 0.1f, 
                 Handles.SphereHandleCap);
         }
-        Handles.DrawLine(this.intersectTestStart, this.intersectTextEnd);
+        //Handles.DrawLine(this.intersectTestStart, this.intersectTextEnd);
 
         // Draw all curves and show handles for them.
         Handles.color = Color.white;
@@ -654,7 +625,7 @@ public class CurveEditor : Editor
 
             if(drawKnots == true)
             {
-                bool inter = Handles.Button(bn.Pos, Quaternion.identity, 0.1f, 0.1f, Handles.CubeHandleCap);
+                bool inter = Handles.Button(bn.Pos, Quaternion.identity, 0.02f, 0.02f, Handles.CubeHandleCap);
 
                 Handles.color = Color.white;
                 if(inter == true)
@@ -698,7 +669,7 @@ public class CurveEditor : Editor
                 if(bn.UseTanIn == true)
                 {
                     Handles.color = Color.blue;
-                    if(Handles.Button(bn.Pos + bn.TanIn, Quaternion.identity, 0.05f, 0.05f, Handles.CubeHandleCap) == true)
+                    if(Handles.Button(bn.Pos + bn.TanIn, Quaternion.identity, 0.01f, 0.01f, Handles.CubeHandleCap) == true)
                     {
                         this.movedTangent = bn;
                         this.movedTangentType = BNode.TangentType.Input;
@@ -711,7 +682,7 @@ public class CurveEditor : Editor
                 if(bn.UseTanOut == true)
                 {
                     Handles.color = Color.blue;
-                    if(Handles.Button(bn.Pos + bn.TanOut, Quaternion.identity, 0.05f, 0.05f, Handles.CubeHandleCap) == true)
+                    if(Handles.Button(bn.Pos + bn.TanOut, Quaternion.identity, 0.01f, 0.01f, Handles.CubeHandleCap) == true)
                     {
                         this.movedTangent = bn;
                         this.movedTangentType = BNode.TangentType.Output;
@@ -786,11 +757,6 @@ public class CurveEditor : Editor
 
         if (ct > 0.0f)
             this.averagePoint /= ct;
-    }
-
-    void TestBridge(BLoop loopA, BLoop loopB)
-    { 
-
     }
 
     // Testing intersection functionality - logic going to be moved to relevant core classes.

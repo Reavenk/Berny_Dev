@@ -100,15 +100,17 @@ public class BernyTest : MonoBehaviour
 
         this.curveDocument = new Document();
 
-        BShape shapeRect = this.curveDocument.AddRectangle(Vector2.zero, new Vector2(1.0f, 1.0f));
+        //BShape shapeRect = this.curveDocument.AddRectangle(Vector2.zero, new Vector2(1.0f, 1.0f));
 
-        foreach(BLoop bl in shapeRect.loops)
-        {
-            foreach (BNode bn in bl.nodes)
-                bn.Round();
-        }
+        //foreach(BLoop bl in shapeRect.loops)
+        //{
+        //    foreach (BNode bn in bl.nodes)
+        //        bn.Round();
+        //}
 
         this.curveDocument.FlushDirty();
+
+        PxPre.Berny.Text.GenerateGlyph(this.typeface.glyphs[0], this.curveDocument.GetFirstLayer(), Vector2.zero, 1.0f);
     }
 
     /// <summary>
