@@ -97,6 +97,9 @@ public class BernyTest : MonoBehaviour
         PxPre.Berny.TTF.Loader loader = new PxPre.Berny.TTF.Loader();
         //this.typeface = loader.ReadTTF("Assets\\Testing\\Nerko\\NerkoOne-Regular.ttf");
         this.typeface = loader.ReadTTF("Assets\\Testing\\BattalionCommander\\Battalion Commander.otf");
+        //this.typeface = loader.ReadTTF("C:\\Users\\Reavenk\\Desktop\\GILSANUB.TTF");
+        //this.typeface = loader.ReadTTF("C:\\Users\\Reavenk\\Desktop\\AGENCYB.TTF");
+
 
         this.curveDocument = new Document();
 
@@ -110,7 +113,26 @@ public class BernyTest : MonoBehaviour
 
         this.curveDocument.FlushDirty();
 
-        PxPre.Berny.Text.GenerateGlyph(this.typeface.glyphs[0], this.curveDocument.GetFirstLayer(), Vector2.zero, 1.0f);
+        Vector2 pos = Vector2.zero;
+        for(int i = 4; i < this.typeface.glyphs.Count; ++i)
+        {
+            Debug.Log("Preparing index " + i.ToString());
+            BShape shape = 
+                PxPre.Berny.Text.GenerateGlyph(
+                    this.typeface.glyphs[i], 
+                    this.curveDocument.GetFirstLayer(), 
+                    //pos,
+                    new Vector2((1.0f - this.typeface.glyphs[i].advance) * 0.5f, 0.2f),
+                    1.0f);
+        
+            //PxPre.Berny.Text.BridgeGlyph(shape);
+            shape.FlushDirty();
+            pos.x += this.typeface.glyphs[i].advance;
+
+            break;
+
+            //break;
+        }
     }
 
     /// <summary>

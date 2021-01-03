@@ -36,7 +36,7 @@ public class CurveEditor : Editor
     public float strokeWidth = 0.1f;
 
     public static string textToCreate = "Text To Create!";
-    public static bool bridgeFonts = true;
+    public static bool bridgeFonts = false;
 
     public static bool drawKnots = true;
 
@@ -213,8 +213,25 @@ public class CurveEditor : Editor
                     foreach(BNode selNode in this.selectedNodes)
                         selNode.Detach();
                 }
+
             GUILayout.EndHorizontal();
+
             GUI.color = Color.white;
+
+            if(GUILayout.Button("Expand Islands") == true)
+            { 
+                HashSet<BNode> toScan = new HashSet<BNode>(this.selectedNodes);
+                while(toScan.Count > 0)
+                { 
+                    BNode bnCut = Utils.GetFirstInHash(toScan);
+
+                    foreach(BNode bnT in bnCut.Travel())
+                    {   
+                        toScan.Remove(bnT);
+                        this.selectedNodes.Add(bnT);
+                    }
+                }
+            }
 
             if (GUILayout.Button("Connect") == true)
             {
@@ -474,21 +491,30 @@ public class CurveEditor : Editor
                 
                 // If loops is filled, srcLoop should be non-null
                 if (loops.Count > 0)
-                    Boolean.Union(srcLoop, loops.ToArray());
+                {
+                    BNode filler;
+                    Boolean.Union(srcLoop, out filler, loops.ToArray());
+                }
             }
 
             if(GUILayout.Button("Test Difference") == true)
             {
                 List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
                 if(loops.Count >= 2)
-                    Boolean.Difference( loops[0], loops[1]);
+                {
+                    BNode filler;
+                    Boolean.Difference( loops[0], loops[1], out filler);
+                }
             }
 
             if(GUILayout.Button("Test Intersection") == true)
             {
                 List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
                 if (loops.Count >= 2)
-                    Boolean.Intersection(loops[0], loops[1], true);
+                {
+                    BNode filler;
+                    Boolean.Intersection(loops[0], loops[1], out filler, true);
+                }
             }
 
             if (GUILayout.Button("Test Exclusion") == true)
@@ -570,6 +596,15 @@ public class CurveEditor : Editor
                     Text.BridgeGlyph(bs);
             }
         }
+
+        if(GUILayout.Button("Bridge Font Shapes") == true)
+        { 
+            foreach(BShape shape in t.curveDocument.EnumerateShapes())
+                Text.BridgeGlyph(shape);
+        }
+
+        if (GUILayout.Button("Clean") == true)
+            t.curveDocument.Clean();
 
         if (t.curveDocument.IsDirty() == true)
             t.curveDocument.FlushDirty();
@@ -868,20 +903,20 @@ public class CurveEditor : Editor
 
         foreach(Utils.BezierSubdivSample interS in inter)
         {
-            if(interS.nodeA == interS.nodeB)
+            if(interS.a.node == interS.b.node)
             {
 #if BWINDOW
-                Debug.Log($"SELF Collision detected at range {interS.lA0} - {interS.lA1} for object 1 and {interS.lB0} - {interS.lB1} for object 2.");
+                Debug.Log($"SELF Collision detected at range {interS.a.l0} - {interS.a.l1} for object 1 and {interS.b.l0} - {interS.b.l1} for object 2.");
 #else
-                Debug.Log($"SELF Collision detected at range {interS.lAEst} for object 1 and {interS.lBEst} for object 2.");
+                Debug.Log($"SELF Collision detected at range {interS.a.lEst} for object 1 and {interS.b.lEst} for object 2.");
 #endif
             }
             else
             {
 #if BWINDOW
-                Debug.Log($"Collision detected at range {interS.lA0} - {interS.lA1} for object 1 and {interS.lB0} - {interS.lB1} for object 2.");
+                Debug.Log($"Collision detected at range {interS.a.l0} - {interS.a.l1} for object 1 and {interS.b.l0} - {interS.b.l1} for object 2.");
 #else
-                Debug.Log($"Collision detected at range {interS.lAEst} for object 1 and {interS.lBEst} for object 2.");
+                Debug.Log($"Collision detected at range {interS.a.lEst} for object 1 and {interS.b.lEst} for object 2.");
 #endif
             }
         }
