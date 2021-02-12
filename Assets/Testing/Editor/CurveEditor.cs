@@ -565,6 +565,33 @@ public class CurveEditor : Editor
                 }
                 if (GUILayout.Button("Difference Trace") == true)
                 {
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
+                    if (loops.Count >= 2)
+                    {
+                        BNode islA = loops[0].nodes[0]; 
+                        BNode islB = loops[1].nodes[0];
+
+                        
+                        if(BNode.CalculateWinding(islA.Travel()) > 0)
+                            islA.ReverseChainOrder();
+
+                        if(BNode.CalculateWinding(islB.Travel()) < 0)
+                            islB.ReverseChainOrder();
+
+                        if (Boolean.TraceDifference(islA, islB, loops[0], out _, true) == false)
+                        {
+                            Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islA, islB, false);
+                            if (bm == Boolean.BoundingMode.LeftSurroundsRight)
+                            {
+                                // Do nothing, leave the inside with a reverse hole in it.
+                            }
+                            else if (bm == Boolean.BoundingMode.RightSurroundsLeft)
+                            { 
+                                islA.RemoveIsland(false);
+                                islB.RemoveIsland(false);
+                            }
+                        }
+                    }
                 }
             GUILayout.EndHorizontal();
 
@@ -580,7 +607,23 @@ public class CurveEditor : Editor
                 }
                 if (GUILayout.Button("Intersection Trace") == true)
                 {
-                }
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
+                    if (loops.Count >= 2)
+                    {
+                        BNode islA = loops[0].nodes[0];
+                        BNode islB = loops[1].nodes[0];
+                        if (Boolean.TraceIntersection(islA, islB, loops[0], out _,  true) == false)
+                        {
+                            Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islA, islB, false);
+                            if (bm == Boolean.BoundingMode.LeftSurroundsRight)
+                                islA.RemoveIsland(false);
+                            else if (bm == Boolean.BoundingMode.RightSurroundsLeft)
+                            {
+                                islB.RemoveIsland(false);
+                            }
+                        }
+                    }
+            }
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Test Exclusion") == true)
