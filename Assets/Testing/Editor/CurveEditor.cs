@@ -488,38 +488,100 @@ public class CurveEditor : Editor
                 }
             GUILayout.EndHorizontal();
 
-            if(GUILayout.Button("Test Union") == true)
-            { 
-                BLoop srcLoop = null;
-                List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(out srcLoop, this.selectedNodes);
+            GUILayout.BeginHorizontal();
+                if(GUILayout.Button("Test Union") == true)
+                { 
+                    BLoop srcLoop = null;
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(out srcLoop, this.selectedNodes);
                 
-                // If loops is filled, srcLoop should be non-null
-                if (loops.Count > 0)
-                {
-                    BNode filler;
-                    Boolean.Union(srcLoop, out filler, loops.ToArray());
+                    // If loops is filled, srcLoop should be non-null
+                    if (loops.Count > 0)
+                    {
+                        BNode filler;
+                        Boolean.Union(srcLoop, out filler, loops.ToArray());
+                    }
                 }
-            }
 
-            if(GUILayout.Button("Test Difference") == true)
-            {
-                List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
-                if(loops.Count >= 2)
+                if(GUILayout.Button("Union Trace") == true)
                 {
-                    BNode filler;
-                    Boolean.Difference( loops[0], loops[1], out filler);
-                }
-            }
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
+                    List<BNode> islands = new List<BNode>();
+                    foreach(BLoop bl in loops)
+                    {
+                        List<BNode> lisls = bl.GetIslands(IslandTypeRequest.Closed);
+                        if(lisls != null)
+                            islands.AddRange(lisls);
+                    }
 
-            if(GUILayout.Button("Test Intersection") == true)
-            {
-                List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
-                if (loops.Count >= 2)
-                {
-                    BNode filler;
-                    Boolean.Intersection(loops[0], loops[1], out filler, true);
+                    for(int i = 0; i < islands.Count - 1; )
+                    {
+                        bool mergedAny = false;
+                        for(int j = i + 1; j < islands.Count;)
+                        {
+                            BNode newIsl;
+                            
+                            BLoop srcLoop = islands[i].parent;
+                            if(Boolean.TraceUnion(islands[i], islands[j], srcLoop, out newIsl, true) == true)
+                            { 
+                                islands[i] = newIsl;
+                                mergedAny = true;
+                                islands.RemoveAt(j);
+                            }
+                            else
+                            { 
+                                Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islands[i], islands[j], false);
+                                if( bm == Boolean.BoundingMode.LeftSurroundsRight)
+                                { 
+                                    islands[j].RemoveIsland(false);
+                                    islands.RemoveAt(j);
+                                }
+                                else if(bm == Boolean.BoundingMode.RightSurroundsLeft)
+                                { 
+                                    islands[i].RemoveIsland(false);
+                                    islands[i] = islands[j];
+                                    islands.RemoveAt(j);
+                                    mergedAny = true;
+                                }
+                                else
+                                    ++j;
+                            }
+                        }
+
+                        if(mergedAny == false)
+                            ++i;
+                    }
                 }
-            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+                if(GUILayout.Button("Test Difference") == true)
+                {
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
+                    if(loops.Count >= 2)
+                    {
+                        BNode filler;
+                        Boolean.Difference( loops[0], loops[1], out filler);
+                    }
+                }
+                if (GUILayout.Button("Difference Trace") == true)
+                {
+                }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+                if(GUILayout.Button("Test Intersection") == true)
+                {
+                    List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
+                    if (loops.Count >= 2)
+                    {
+                        BNode filler;
+                        Boolean.Intersection(loops[0], loops[1], out filler, true);
+                    }
+                }
+                if (GUILayout.Button("Intersection Trace") == true)
+                {
+                }
+            GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Test Exclusion") == true)
             {
