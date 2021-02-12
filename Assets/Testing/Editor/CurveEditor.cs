@@ -40,6 +40,8 @@ public class CurveEditor : Editor
 
     public static bool drawKnots = true;
 
+    public bool showCurveIDs = true;
+
     /// <summary>
     /// Unity inspector function.
     /// </summary>
@@ -55,6 +57,8 @@ public class CurveEditor : Editor
         BernyTest t = (BernyTest)this.target;
         if (t == null || t.curveDocument == null)
             return;
+
+        this.showCurveIDs = GUILayout.Toggle(this.showCurveIDs, "Show Curve IDs");
 
         if (GUILayout.Button("Test Validity") == true)
             t.curveDocument.TestValidity();
@@ -631,6 +635,16 @@ public class CurveEditor : Editor
             }
 
             this.DoUIDocument(t.curveDocument, 0.0f);
+
+            if (this.showCurveIDs == true && Camera.current != null)
+            {
+                foreach (BNode bn in t.curveDocument.EnumerateNodes())
+                {
+                    Vector2 v2 = Camera.current.WorldToScreenPoint(bn.Pos);
+                    GUI.Label(new Rect(v2.x + 10.0f, Screen.height - v2.y - 90, 100.0f, 100.0f), bn.debugCounter.ToString());
+                }
+            }
+
         Handles.EndGUI();
 
 
@@ -693,6 +707,23 @@ public class CurveEditor : Editor
 
                 if(bit == bitFirst)
                     break;
+            }
+
+            if (this.showCurveIDs == true && bn.next != null)
+            {
+                Vector2 tan = bn.GetTangent(BNode.TangentType.Input);
+                if (tan.sqrMagnitude < Mathf.Epsilon)
+                    continue;
+
+                float ang = Mathf.Atan2(tan.y, tan.x);
+
+                float angS1 = ang - 0.2f;
+                Vector2 vang1 = new Vector2(Mathf.Cos(angS1), Mathf.Sin(angS1)) * 0.3f;
+                float angS2 = ang + 0.2f;
+                Vector2 vang2 = new Vector2(Mathf.Cos(angS2), Mathf.Sin(angS2)) * 0.3f;
+
+                Handles.DrawLine(bn.Pos, bn.Pos + vang1);
+                Handles.DrawLine(bn.Pos, bn.Pos + vang2);
             }
         }
     
