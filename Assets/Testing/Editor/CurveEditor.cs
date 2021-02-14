@@ -505,51 +505,7 @@ public class CurveEditor : Editor
                 if(GUILayout.Button("Union Trace") == true)
                 {
                     List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
-                    List<BNode> islands = new List<BNode>();
-                    foreach(BLoop bl in loops)
-                    {
-                        List<BNode> lisls = bl.GetIslands(IslandTypeRequest.Closed);
-                        if(lisls != null)
-                            islands.AddRange(lisls);
-                    }
-
-                    for(int i = 0; i < islands.Count - 1; )
-                    {
-                        bool mergedAny = false;
-                        for(int j = i + 1; j < islands.Count;)
-                        {
-                            BNode newIsl;
-                            
-                            BLoop srcLoop = islands[i].parent;
-                            if(Boolean.TraceUnion(islands[i], islands[j], srcLoop, out newIsl, true) == true)
-                            { 
-                                islands[i] = newIsl;
-                                mergedAny = true;
-                                islands.RemoveAt(j);
-                            }
-                            else
-                            { 
-                                Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islands[i], islands[j], false);
-                                if( bm == Boolean.BoundingMode.LeftSurroundsRight)
-                                { 
-                                    islands[j].RemoveIsland(false);
-                                    islands.RemoveAt(j);
-                                }
-                                else if(bm == Boolean.BoundingMode.RightSurroundsLeft)
-                                { 
-                                    islands[i].RemoveIsland(false);
-                                    islands[i] = islands[j];
-                                    islands.RemoveAt(j);
-                                    mergedAny = true;
-                                }
-                                else
-                                    ++j;
-                            }
-                        }
-
-                        if(mergedAny == false)
-                            ++i;
-                    }
+                    Boolean.TraceUnion(loops, loops[0], null, true);
                 }
             GUILayout.EndHorizontal();
 
@@ -568,29 +524,11 @@ public class CurveEditor : Editor
                     List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
                     if (loops.Count >= 2)
                     {
-                        BNode islA = loops[0].nodes[0]; 
-                        BNode islB = loops[1].nodes[0];
-
-                        
-                        if(BNode.CalculateWinding(islA.Travel()) > 0)
-                            islA.ReverseChainOrder();
-
-                        if(BNode.CalculateWinding(islB.Travel()) < 0)
-                            islB.ReverseChainOrder();
-
-                        if (Boolean.TraceDifference(islA, islB, loops[0], out _, true) == false)
-                        {
-                            Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islA, islB, false);
-                            if (bm == Boolean.BoundingMode.LeftSurroundsRight)
-                            {
-                                // Do nothing, leave the inside with a reverse hole in it.
-                            }
-                            else if (bm == Boolean.BoundingMode.RightSurroundsLeft)
-                            { 
-                                islA.RemoveIsland(false);
-                                islB.RemoveIsland(false);
-                            }
-                        }
+                        Boolean.TraceDifference(
+                            loops[0], 
+                            loops[1], 
+                            loops[0], 
+                            true);
                     }
                 }
             GUILayout.EndHorizontal();
@@ -610,20 +548,14 @@ public class CurveEditor : Editor
                     List<BLoop> loops = Boolean.GetUniqueLoopsInEncounteredOrder(this.selectedNodes);
                     if (loops.Count >= 2)
                     {
-                        BNode islA = loops[0].nodes[0];
-                        BNode islB = loops[1].nodes[0];
-                        if (Boolean.TraceIntersection(islA, islB, loops[0], out _,  true) == false)
-                        {
-                            Boolean.BoundingMode bm = Boolean.GetLoopBoundingMode(islA, islB, false);
-                            if (bm == Boolean.BoundingMode.LeftSurroundsRight)
-                                islA.RemoveIsland(false);
-                            else if (bm == Boolean.BoundingMode.RightSurroundsLeft)
-                            {
-                                islB.RemoveIsland(false);
-                            }
-                        }
+                        Boolean.TraceIntersection(
+                            loops[0], 
+                            loops[1], 
+                            loops[0], 
+                            null,
+                            true);
                     }
-            }
+                }
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Test Exclusion") == true)
